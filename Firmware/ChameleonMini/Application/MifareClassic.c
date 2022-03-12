@@ -211,10 +211,8 @@ static bool isLogEnabled = false;
 static uint32_t LogBytesWrote = 0;
 static uint16_t LogBytesBuffered = 0;
 static uint32_t LogMaxBytes = 0;
-static uint8_t LogLineBufferA[MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN] = { 0 };
-static uint8_t LogLineBufferB[MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN] = { 0 };
-static uint8_t * LogLineBuffer = LogLineBufferA;
-static bool LogLineBufferFirst = true;
+static uint8_t LogLineBuffer[MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN] = { 0 };
+static uint32_t LogTickCounter = 0
 #endif
 
 /* decode Access conditions for a block */
@@ -462,28 +460,21 @@ void MifareClassicAppLogBufferLine(const uint8_t * Data, uint16_t BitCount, uint
 }
 
 void MifareClassicAppLogWriteLines(void) {
-    uint16_t LogBytesToWrite = LogBytesBuffered;
-    uint8_t * LogLineBufferToWrite = LogLineBuffer;
-    /* swap buffers */
-    if ( LogLineBufferFirst ) {
-        LogLineBuffer = LogLineBufferB;
-	LogLineBufferFirst = false;
-    } else {
-        LogLineBuffer = LogLineBufferA;
-	LogLineBufferFirst = true;
-    }
-    LogBytesBuffered = 0;
-
     if( isLogEnabled && (LogBytesToWrite > 0) ) {
-	/* circular log */
-        if( (LogBytesWrote + LogBytesToWrite) >= LogMaxBytes) {
-            LogBytesWrote = 0;
-        }
-        /* write log */
-        AppWorkingMemoryWrite(LogLineBufferToWrite, MFCLASSIC_LOG_MEM_LOG_HEADER_LEN+LogBytesWrote, LogBytesToWrite);
-	/* update header */
-        LogBytesWrote += LogBytesToWrite;
-        MifareClassicAppLogWriteHeader();
+	if (LogBytesBuffered >= (MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN * 0.9) || LogTickCounter >= MFCLASSIC_LOG_MAX_TICK_UNWRITTEN ){
+	    /* circular log */
+            if( (LogBytesWrote + LogBytesBuffered) >= LogMaxBytes) {
+                LogBytesWrote = 0;
+            }
+            /* write log */
+            AppWorkingMemoryWrite(LogLineBuffer, MFCLASSIC_LOG_MEM_LOG_HEADER_LEN+LogBytesWrote, LogBytesBuffered);
+	    /* update header */
+            LogBytesWrote += LogBytesBuffered;
+            MifareClassicAppLogWriteHeader();
+	    LogTickCounter = 0;
+	}else{
+	    LogTickCounter++;
+	}
     }
 }
 
