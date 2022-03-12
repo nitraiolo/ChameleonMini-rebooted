@@ -212,7 +212,7 @@ static uint32_t LogBytesWrote = 0;
 static uint16_t LogBytesBuffered = 0;
 static uint32_t LogMaxBytes = 0;
 static uint8_t LogLineBuffer[MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN] = { 0 };
-static uint32_t LogTickCounter = 0
+static uint32_t LogTickCounter = 0;
 #endif
 
 /* decode Access conditions for a block */
@@ -460,7 +460,7 @@ void MifareClassicAppLogBufferLine(const uint8_t * Data, uint16_t BitCount, uint
 }
 
 void MifareClassicAppLogWriteLines(void) {
-    if( isLogEnabled && (LogBytesToWrite > 0) ) {
+    if( isLogEnabled && (LogBytesBuffered > 0) ) {
 	if (LogBytesBuffered >= (MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN * 0.9) || LogTickCounter >= MFCLASSIC_LOG_MAX_TICK_UNWRITTEN ){
 	    /* circular log */
             if( (LogBytesWrote + LogBytesBuffered) >= LogMaxBytes) {
