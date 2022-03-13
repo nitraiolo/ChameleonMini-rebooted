@@ -461,7 +461,7 @@ void MifareClassicAppLogBufferLine(const uint8_t * Data, uint16_t BitCount, uint
 
 void MifareClassicAppLogWriteLines(void) {
     if( isLogEnabled && (LogBytesBuffered > 0) ) {
-	if (LogBytesBuffered >= (MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN * 0.9) || LogTickCounter >= MFCLASSIC_LOG_MAX_TICK_UNWRITTEN ){
+	if (LogBytesBuffered >= (MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN / 10 * 9 ) || LogTickCounter >= MFCLASSIC_LOG_MAX_TICK_UNWRITTEN ){
 	    /* circular log */
             if( (LogBytesWrote + LogBytesBuffered) >= LogMaxBytes) {
                 LogBytesWrote = 0;
