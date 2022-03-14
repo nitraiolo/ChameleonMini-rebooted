@@ -468,8 +468,9 @@ void MifareClassicAppLogWriteLines(void) {
             }
             /* write log */
             AppWorkingMemoryWrite(LogLineBuffer, MFCLASSIC_LOG_MEM_LOG_HEADER_LEN+LogBytesWrote, LogBytesBuffered);
-	    /* update header */
             LogBytesWrote += LogBytesBuffered;
+	    LogBytesBuffered = 0;
+	    /* update header */
             MifareClassicAppLogWriteHeader();
 	    LogTickCounter = 0;
 	}else{
