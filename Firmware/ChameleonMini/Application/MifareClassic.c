@@ -163,18 +163,18 @@ static enum estate State = STATE_IDLE;
 
 #ifdef CONFIG_MF_CLASSIC_LOG_SUPPORT
 char *estate_str[] = {
-    "HALT",
-    "IDLE",
-    "CHINESE_IDLE",
-    "CHINESE_WRITE",
-    "READY",
-    "ACTIVE",
-    "AUTHING",
-    "AUTHED_IDLE",
-    "WRITE",
-    "INCREMENT",
-    "DECREMENT",
-    "RESTORE"
+    "HLT",
+    "IDL",
+    "CIDL",
+    "CWRT",
+    "RDY",
+    "ACT",
+    "AUT",
+    "AIDL",
+    "WRT",
+    "INC",
+    "DEC",
+    "RST"
 };
 #endif
 
@@ -448,10 +448,10 @@ void MifareClassicAppLogBufferLine(const uint8_t * Data, uint16_t BitCount, uint
     uint16_t idx = LogBytesBuffered+MFCLASSIC_LOG_MEM_LINE_START_ADDR;
 
     if( (idx + dataBytesToBuffer*2 + logStateStrLen + 14) < MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN) {
-        idx += sprintf((char *)&LogLineBuffer[idx],"[%05u] %c:\t%s\t| ",SystemGetSysTick(),Source,estate_str[State]);
+        idx += sprintf((char *)&LogLineBuffer[idx],"%05u|%c|%s|",SystemGetSysTick(),Source,estate_str[State]);
 	BufferToHexString((char *)&LogLineBuffer[idx],dataBytesToBuffer*2+1,Data,dataBytesToBuffer);
         idx += dataBytesToBuffer*2;
-        idx += sprintf((char *)&LogLineBuffer[idx]," ;");
+        idx += sprintf((char *)&LogLineBuffer[idx],";");
     }
     if(MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN - idx > 2){
         idx += sprintf((char *)&LogLineBuffer[idx],"\r\n");
@@ -461,7 +461,7 @@ void MifareClassicAppLogBufferLine(const uint8_t * Data, uint16_t BitCount, uint
 
 void MifareClassicAppLogWriteLines(void) {
     if( isLogEnabled && (LogBytesBuffered > 0) ) {
-	if (LogBytesBuffered >= (MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN / 100 * 56 ) || LogTickCounter >= MFCLASSIC_LOG_MAX_TICK_UNWRITTEN ){
+	if (LogBytesBuffered >= MFCLASSIC_LOG_MAX_BUFFER_UNWRITTEN || LogTickCounter >= MFCLASSIC_LOG_MAX_TICK_UNWRITTEN ){
 	    /* circular log */
             if( (LogBytesWrote + LogBytesBuffered) >= LogMaxBytes) {
                 LogBytesWrote = 0;
