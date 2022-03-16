@@ -449,8 +449,12 @@ void MifareClassicAppLogBufferLine(const uint8_t * Data, uint16_t BitCount, uint
 
     if( (idx + dataBytesToBuffer*2 + logStateStrLen + 14) < MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN) {
         idx += sprintf((char *)&LogLineBuffer[idx],"[%05u] %c:\t%s\t| ",SystemGetSysTick(),Source,estate_str[State]);
-	BufferToHexString((char *)&LogLineBuffer[idx],dataBytesToBuffer*2+1,Data,dataBytesToBuffer);
-        idx += dataBytesToBuffer*2;
+		if (dataBytesToBuffer >= 18){
+			idx += sprintf((char *)&LogLineBuffer[idx],"--");
+		else{
+			BufferToHexString((char *)&LogLineBuffer[idx],dataBytesToBuffer*2+1,Data,dataBytesToBuffer);
+			idx += dataBytesToBuffer*2;
+		}
         idx += sprintf((char *)&LogLineBuffer[idx]," ;");
     }
     if(MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN - idx > 2){
