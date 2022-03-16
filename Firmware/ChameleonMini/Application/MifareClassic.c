@@ -212,6 +212,7 @@ static uint32_t LogBytesWrote = 0;
 static uint16_t LogBytesBuffered = 0;
 static uint32_t LogMaxBytes = 0;
 static uint8_t LogLineBuffer[MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN] = { 0 };
+static uint8_t LogTickCounter = 0;
 #endif
 
 /* decode Access conditions for a block */
@@ -439,6 +440,20 @@ void MifareClassicAppLogWriteHeader(void) {
     AppWorkingMemoryWrite(headerLine, MFCLASSIC_LOG_MEM_LOG_HEADER_ADDR, MFCLASSIC_LOG_MEM_LOG_HEADER_LEN);
 }
 
+void MifareClassicAppLogBufferFlush(void){
+    /* circular log */
+    if( (LogBytesWrote + LogBytesBuffered) >= LogMaxBytes) {
+        LogBytesWrote = 0;
+    }
+    /* write log */
+    AppWorkingMemoryWrite(LogLineBuffer, MFCLASSIC_LOG_MEM_LOG_HEADER_LEN+LogBytesWrote, LogBytesBuffered);
+    LogBytesWrote += LogBytesBuffered;
+    LogBytesBuffered = 0;
+    /* update header */
+    MifareClassicAppLogWriteHeader();
+    LogTickCounter = 0;
+}
+
 void MifareClassicAppLogBufferedLineWrite(const uint8_t * Data, uint16_t BitCount, uint8_t Source) {
     uint16_t dataBytesToBuffer = (BitCount / BITS_PER_BYTE);
     if(BitCount % BITS_PER_BYTE) dataBytesToBuffer++;
@@ -448,8 +463,16 @@ void MifareClassicAppLogBufferedLineWrite(const uint8_t * Data, uint16_t BitCoun
 
     if( (idx + dataBytesToBuffer*2 + logStateStrLen + 14) < MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN) {
         idx += sprintf((char *)&LogLineBuffer[idx],"%05u|%c|%s|",SystemGetSysTick(),Source,estate_str[State]);
-	BufferToHexString((char *)&LogLineBuffer[idx],dataBytesToBuffer*2+1,Data,dataBytesToBuffer);
+#ifdef CONFIG_MF_CLASSIC_LOG_DROP_RECORDS_DATA
+        if (dataBytesToBuffer >= 18){
+            idx += sprintf((char *)&LogLineBuffer[idx],"--");
+	}else{
+#endif
+        BufferToHexString((char *)&LogLineBuffer[idx],dataBytesToBuffer*2+1,Data,dataBytesToBuffer);
         idx += dataBytesToBuffer*2;
+#ifdef CONFIG_MF_CLASSIC_LOG_DROP_RECORDS_DATA
+	}
+#endif
         idx += sprintf((char *)&LogLineBuffer[idx],";");
     }
     if(MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN - idx > 2){
@@ -459,16 +482,18 @@ void MifareClassicAppLogBufferedLineWrite(const uint8_t * Data, uint16_t BitCoun
 
     /* if there is no space left for another line, let's flush the buffer */
     if ((MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN - LogBytesBuffered) < MFCLASSIC_LOG_MAX_LINE_LENGHT){
-        /* circular log */
-        if( (LogBytesWrote + LogBytesBuffered) >= LogMaxBytes) {
-            LogBytesWrote = 0;
+        MifareClassicAppLogBufferFlush();
+    }
+}
+
+void MifareClassicAppLogTick(void) {
+    /* Flush buffer if there is still some data after a while since last log */
+    if (LogBytesBuffered > 0){
+        if (LogTickCounter >= MFCLASSIC_LOG_MAX_TICK_UNWRITTEN){
+	    MifareClassicAppLogBufferFlush();
+        }else{
+            LogTickCounter++;
         }
-        /* write log */
-        AppWorkingMemoryWrite(LogLineBuffer, MFCLASSIC_LOG_MEM_LOG_HEADER_LEN+LogBytesWrote, LogBytesBuffered);
-        LogBytesWrote += LogBytesBuffered;
-	LogBytesBuffered = 0;
-	/* update header */
-        MifareClassicAppLogWriteHeader();
     }
 }
 

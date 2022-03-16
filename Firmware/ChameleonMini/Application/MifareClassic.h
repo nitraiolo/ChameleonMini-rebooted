@@ -223,6 +223,7 @@ C1 C2 C3     read     write     increment     decrement,
 #define MFCLASSIC_LOG_BUFFER_OVERFLOW           0x0F
 #define MFCLASSIC_LOG_MIN_LINE_LENGHT		15
 #define MFCLASSIC_LOG_MAX_LINE_LENGHT		52
+#define MFCLASSIC_LOG_MAX_TICK_UNWRITTEN	5
 #endif
 
 void MifareClassicAppInit1K(void);
@@ -253,7 +254,7 @@ void MifareClassicAppBruteToggle(void);
 
 #ifdef CONFIG_MF_CLASSIC_LOG_SUPPORT
 void MifareClassicAppLogInit(void);
-void MifareClassicAppLogWriteLines(void);
+void MifareClassicAppLogTick(void);
 void MifareClassicAppLogToggle(void);
 #endif
 
