@@ -440,7 +440,7 @@ void MifareClassicAppLogWriteHeader(void) {
     AppWorkingMemoryWrite(headerLine, MFCLASSIC_LOG_MEM_LOG_HEADER_ADDR, MFCLASSIC_LOG_MEM_LOG_HEADER_LEN);
 }
 
-void MifareClassicAppLogBufferLine(const uint8_t * Data, uint16_t BitCount, uint8_t Source) {
+void MifareClassicAppLogBufferedLineWrite(const uint8_t * Data, uint16_t BitCount, uint8_t Source) {
     uint16_t dataBytesToBuffer = (BitCount / BITS_PER_BYTE);
     if(BitCount % BITS_PER_BYTE) dataBytesToBuffer++;
 
@@ -456,26 +456,20 @@ void MifareClassicAppLogBufferLine(const uint8_t * Data, uint16_t BitCount, uint
     if(MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN - idx > 2){
         idx += sprintf((char *)&LogLineBuffer[idx],"\r\n");
     }
-	LogBytesBuffered = idx;
-}
+    LogBytesBuffered = idx;
 
-void MifareClassicAppLogWriteLines(void) {
-    if( isLogEnabled && (LogBytesBuffered > 0) ) {
-	if (LogBytesBuffered >= MFCLASSIC_LOG_MAX_BUFFER_UNWRITTEN || LogTickCounter >= MFCLASSIC_LOG_MAX_TICK_UNWRITTEN ){
-	    /* circular log */
-            if( (LogBytesWrote + LogBytesBuffered) >= LogMaxBytes) {
-                LogBytesWrote = 0;
-            }
-            /* write log */
-            AppWorkingMemoryWrite(LogLineBuffer, MFCLASSIC_LOG_MEM_LOG_HEADER_LEN+LogBytesWrote, LogBytesBuffered);
-            LogBytesWrote += LogBytesBuffered;
-	    LogBytesBuffered = 0;
-	    /* update header */
-            MifareClassicAppLogWriteHeader();
-	    LogTickCounter = 0;
-	}else{
-	    LogTickCounter++;
-	}
+    /* if there is no space left for another line, let's flush the buffer */
+    if ((MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN - LogBytesBuffered) < MFCLASSIC_LOG_MAX_LINE_LENGHT){
+        /* circular log */
+        if( (LogBytesWrote + LogBytesBuffered) >= LogMaxBytes) {
+            LogBytesWrote = 0;
+        }
+        /* write log */
+        AppWorkingMemoryWrite(LogLineBuffer, MFCLASSIC_LOG_MEM_LOG_HEADER_LEN+LogBytesWrote, LogBytesBuffered);
+        LogBytesWrote += LogBytesBuffered;
+	LogBytesBuffered = 0;
+	/* update header */
+        MifareClassicAppLogWriteHeader();
     }
 }
 
@@ -666,7 +660,7 @@ uint16_t MifareClassicAppProcess(uint8_t* Buffer, uint16_t BitCount) {
 #ifdef CONFIG_MF_CLASSIC_LOG_SUPPORT
     /* Log what comes from reader if logging enabled */
     if(isLogEnabled) {
-        MifareClassicAppLogBufferLine(Buffer, BitCount, MFCLASSIC_LOG_READER);
+        MifareClassicAppLogBufferedLineWrite(Buffer, BitCount, MFCLASSIC_LOG_READER);
     }
 #endif
     /* Size of data (byte) we will send back to reader. Is main process return value */
@@ -1045,7 +1039,7 @@ uint16_t MifareClassicAppProcess(uint8_t* Buffer, uint16_t BitCount) {
 #ifdef CONFIG_MF_CLASSIC_LOG_SUPPORT
     /* Log what goes from tag if logging enabled */
     if(isLogEnabled) {
-        MifareClassicAppLogBufferLine(Buffer, (retSize & ISO14443A_APP_CUSTOM_PARITY) ? (retSize & ~ISO14443A_APP_CUSTOM_PARITY) : (retSize), MFCLASSIC_LOG_TAG);
+        MifareClassicAppLogBufferedLineWrite(Buffer, (retSize & ISO14443A_APP_CUSTOM_PARITY) ? (retSize & ~ISO14443A_APP_CUSTOM_PARITY) : (retSize), MFCLASSIC_LOG_TAG);
     }
 #endif
     return retSize;

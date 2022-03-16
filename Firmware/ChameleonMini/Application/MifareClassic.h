@@ -216,22 +216,13 @@ C1 C2 C3     read     write     increment     decrement,
 #define MFCLASSIC_LOG_MEM_WROTEBYTES_LEN        sizeof(uint32_t)
 #define MFCLASSIC_LOG_MEM_LOG_HEADER_ADDR       0
 #define MFCLASSIC_LOG_MEM_LOG_HEADER_LEN        16
-#define MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN       1792
+#define MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN       1500
 #define MFCLASSIC_LOG_MEM_LINE_START_ADDR       0
 #define MFCLASSIC_LOG_MEM_LINE_TIMESTAMP_LEN    sizeof(uint16_t)
 #define MFCLASSIC_LOG_LINE_OVERHEAD             (MFCLASSIC_LOG_MEM_LINE_TIMESTAMP_LEN+MFCLASSIC_LOG_MEM_CHAR_LEN*10)
 #define MFCLASSIC_LOG_BUFFER_OVERFLOW           0x0F
-#define MFCLASSIC_LOG_MAX_TICK_UNWRITTEN	3
-/*
-  Ensure that buffer will not fullfilled in next tick
-    Min log line: 15
-    Max log line: 52
-    Mean log line = 34
-    Log line time= 2ms
-    Tick time: 100ms
-  1792 - (((14+64)/2)*(100/2)) = 92
-*/
-#define MFCLASSIC_LOG_MAX_BUFFER_UNWRITTEN	92
+#define MFCLASSIC_LOG_MIN_LINE_LENGHT		15
+#define MFCLASSIC_LOG_MAX_LINE_LENGHT		52
 #endif
 
 void MifareClassicAppInit1K(void);
