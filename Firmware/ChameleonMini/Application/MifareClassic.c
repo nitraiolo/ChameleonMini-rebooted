@@ -212,7 +212,6 @@ static uint32_t LogBytesWrote = 0;
 static uint16_t LogBytesBuffered = 0;
 static uint32_t LogMaxBytes = 0;
 static uint8_t LogLineBuffer[MFCLASSIC_LOG_MEM_LINE_BUFFER_LEN] = { 0 };
-static uint32_t LogTickCounter = 0;
 #endif
 
 /* decode Access conditions for a block */
