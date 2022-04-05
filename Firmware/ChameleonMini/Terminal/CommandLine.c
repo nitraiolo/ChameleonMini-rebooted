@@ -185,6 +185,7 @@ const PROGMEM CommandEntryType CommandTable[] = {
     .SetFunc    = NO_FUNCTION,
     .GetFunc    = NO_FUNCTION
   },
+#ifdef CONFIG_MF_CLASSIC_LOGPRINT_COMMAND
   {
     .Command    = COMMAND_LOGPRINT,
     .ExecFunc   = NO_FUNCTION,
@@ -192,6 +193,7 @@ const PROGMEM CommandEntryType CommandTable[] = {
     .SetFunc    = NO_FUNCTION,
     .GetFunc    = CommandGetLog
   },
+#endif
 #endif
   /*
   {

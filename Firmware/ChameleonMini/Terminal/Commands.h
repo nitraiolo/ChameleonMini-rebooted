@@ -187,8 +187,10 @@ CommandStatusIdType CommandGetLogMem(char *OutParam);
 #define COMMAND_LOGCLEAR            "LOGCLEAR"
 CommandStatusIdType CommandExecLogClear(char *OutMessage);
 
+#ifdef CONFIG_MF_CLASSIC_LOGPRINT_COMMAND
 #define COMMAND_LOGPRINT            "LOGPRINT"
 CommandStatusIdType CommandGetLog(char* OutParam);
+#endif
 #endif
 
 #define COMMAND_SETTING             "SETTING"

@@ -591,6 +591,7 @@ CommandStatusIdType CommandExecLogClear(char *OutMessage) {
     return COMMAND_INFO_OK_ID;
 }
 
+#ifdef CONFIG_MF_CLASSIC_LOGPRINT_COMMAND
 CommandStatusIdType CommandGetLog(char* OutParam) {
     uint8_t binBuffer[24];
     char strBuffer[128];
@@ -609,6 +610,8 @@ CommandStatusIdType CommandGetLog(char* OutParam) {
         /* Buffer contains previous read */
         logRecordLen = binBuffer[logBuffLenAddr];
 
+	if (logRecordLen > MFCLASSIC_LOG_MAX_RECORD_LENGHT) return COMMAND_INFO_OK_WITH_TEXT_ID;
+
         /* Read current record in the buffer from flash*/
         AppWorkingMemoryRead(&binBuffer, logFlashRecordAdrr, logRecordLen + MFCLASSIC_LOG_MEM_CHAR_LEN);
 
@@ -624,5 +627,5 @@ CommandStatusIdType CommandGetLog(char* OutParam) {
     }
     return COMMAND_INFO_OK_WITH_TEXT_ID;
 }
-
+#endif
 #endif
